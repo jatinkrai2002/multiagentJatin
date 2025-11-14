@@ -1,0 +1,50 @@
+version: "3.9"
+services:
+  collector:
+    image: ghcr.io/your-org/agent:latest
+    environment:
+      - AUTH_TOKEN=shared-secret
+      - AGENT_NAME=collector
+      - PORT=7001
+      - MEMORY_FILE=/data/memory.json
+    volumes:
+      - collector_data:/data
+    networks: [ ai_net ]
+
+  analyzer:
+    image: ghcr.io/your-org/agent:latest
+    environment:
+      - AUTH_TOKEN=shared-secret
+      - AGENT_NAME=analyzer
+      - PORT=7002
+      - MEMORY_FILE=/data/memory.json
+    volumes:
+      - analyzer_data:/data
+    networks: [ ai_net ]
+
+  reporter:
+    image: ghcr.io/your-org/agent:latest
+    environment:
+      - AUTH_TOKEN=shared-secret
+      - AGENT_NAME=reporter
+      - PORT=7003
+      - MEMORY_FILE=/data/memory.json
+    volumes:
+      - reporter_data:/data
+    networks: [ ai_net ]
+
+  orchestrator:
+    image: ghcr.io/your-org/orchestrator:latest
+    environment:
+      - AUTH_TOKEN=shared-secret
+    depends_on: [ collector, analyzer, reporter ]
+    networks: [ ai_net ]
+
+volumes:
+  collector_data:
+  analyzer_data:
+  reporter_data:
+
+networks:
+  ai_net:
+    driver: bridge

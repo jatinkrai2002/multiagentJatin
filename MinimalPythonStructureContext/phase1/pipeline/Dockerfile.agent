@@ -1,0 +1,9 @@
+FROM python:3.11-slim
+WORKDIR /app
+COPY agent_server.py shared_protocol.py /app/
+COPY agents/ /app/agents/
+RUN useradd -m runner && chown -R runner:runner /app
+USER runner
+CMD ["python", "agent_server.py"]
+
+

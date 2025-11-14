@@ -1,0 +1,62 @@
+Interview-focused discussion: expected answers, challenges, and resolutions
+1. Orchestration across distributed agents
+
+    Expected answer: Implemented orchestrator routing via a static policy mapping task types to agent endpoints. Requests are JSON over TCP with retries and timeouts. Sequential pipeline ensures dependencies are respected.
+
+    Challenges & resolutions:
+
+        Service discovery: Containers needed stable hostnames; resolved via Docker bridge network and service names.
+
+        Partial failures: Added exponential backoff and structured error responses to avoid deadlocks.
+
+2. Persistent memory per agent
+
+    Expected answer: Each agent maintains a per-task record in JSON within a mounted Docker volume. Memory load/save wrapped in try/except with corruption fallback.
+
+    Challenges & resolutions:
+
+        Corrupted files: On JSON decode error, agents reinitialize memory and log incident.
+
+        Bloat: Implemented pruning policy (e.g., keep last N tasks) or rotate memory files.
+
+3. Routing policy design
+
+    Expected answer: Rule-based routing: collect → analyze → report. Orchestrator validates responses between steps, and halts on errors to prevent cascading failures.
+
+    Challenges & resolutions:
+
+        Version drift: If agents change payload shapes, orchestrator enforces schema and returns actionable errors.
+
+        Idempotency: Orchestrator uses task_id to make repeated calls safe.
+
+4. Debugging and monitoring
+
+    Expected answer: Central task log and dashboard in orchestrator; container logs for each agent; structured logs with timestamps and severity.
+
+    Challenges & resolutions:
+
+        Distributed tracing: Added task_id propagation across all logs to correlate events.
+
+        Noise: Tuned logging levels and filtered sensitive data.
+
+5. Secure communication and error handling
+
+    Expected answer: Shared auth token, input validation, socket timeouts, retries; least-privilege volumes. No frameworks—only stdlib sockets and JSON.
+
+    Challenges & resolutions:
+
+        Unauthorized requests: Agents verify tokens; unauthorized requests return “unauthorized”.
+
+        Resource leaks: Ensured socket closures in finally blocks; set SO_REUSEADDR; applied connection timeouts.
+
+Optional enhancements you can ask candidates to consider
+
+    TLS over TCP (e.g., ssl.wrap_socket) for encrypted channels.
+
+    Graceful shutdown and health checks (readiness/liveness endpoints).
+
+    Back-pressure and queueing for high-throughput scenarios (multiprocessing.Queue or a simple in-memory queue in orchestrator).
+
+    Schema versioning and capability negotiation between agents.
+
+    Metrics export (Prometheus text format) and alerts on error rates.

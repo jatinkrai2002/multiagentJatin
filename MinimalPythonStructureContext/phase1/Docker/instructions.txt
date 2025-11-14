@@ -1,0 +1,58 @@
+Distributed multi-agent orchestrator with Docker, TCP sockets, and persistent memory
+
+Here is a production-leaning, framework-free reference implementation that
+ runs three agents and an orchestrator in separate Docker containers.
+ Communication uses raw TCP sockets with a simple JSON protocol.
+ Each agent maintains persistent memory via mounted volumes, and 
+ the orchestrator provides a minimal monitoring dashboard. 
+ The code includes secure practices (input validation, timeouts, retries, and try/except)
+  without external frameworks.
+
+
+
+Architecture and design choices
+    Processes/containers: Orchestrator + 3 agents (Collector, Analyzer, Reporter) run in separate containers.
+    Transport: Raw TCP sockets with a line-delimited JSON protocol; 
+               each request/response is a single JSON line.
+    Routing policy: Orchestrator maps task types to target agent host:port.
+     Sequential pipeline collect → analyze → report.
+    Persistent memory: Each agent writes per-task state into a JSON file in a Docker volume.
+    Security & resilience:
+        Input schema validation and strict whitelisting of task fields.
+        Socket timeouts, retries with exponential backoff.
+        Minimal auth token check (shared secret) to prevent unauthenticated calls.
+        Error handling with structured error responses.
+    Monitoring: Orchestrator keeps a task log and exposes a console dashboard.
+
+
+
+
+Code layout
+    shared_protocol.py — common schema, encode/decode helpers
+    agent_server.py — base agent TCP server
+    agents/collector.py, 
+    agents/analyzer.py, 
+    agents/reporter.py — agent logic
+    orchestrator.py — routes tasks across agents and manages workflow
+    Dockerfile — base image for orchestrator and agents
+    docker-compose.yml — services, networks, volumes
+
+
+In Docker, we will set environment variables to
+ pick each agent’s name and memory path; the above overrides are illustrative. 
+ Alternatively, set AGENT_NAME via env only and leave handle_task bodies in separate modules.
+
+
+The orchestrator uses service names collector, analyzer, and reporter as DNS hostnames on ai_net.
+Each agent persists memory into its own volume.
+A shared AUTH_TOKEN provides simple authentication.
+
+How to run this:-
+Place all files in one directory with the structure shown.
+Build and start:
+    docker compose up --build
+Watch logs:
+    docker logs -f orchestrator
+Stop:
+    docker compose down
+

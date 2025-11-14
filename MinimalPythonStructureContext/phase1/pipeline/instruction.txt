@@ -1,0 +1,35 @@
+Extend the distributed multi-agent orchestrator 
+into an enterprise-scale simulation with 
+GitHub Actions CI/CD pipeline and Docker deployment.
+
+ This will show how you’d automate build, test, and deployment of the 
+ orchestrator + agents into a containerized environment.
+
+
+
+ GitHub Actions Pipeline Overview
+The pipeline will:
+    Trigger on pushes or pull requests to main.
+    Build & test the Python orchestrator and agents.
+    Build Docker images for orchestrator and agents.
+    Push images to GitHub Container Registry (GHCR).
+    Deploy using docker-compose or Kubernetes (simulated enterprise-scale).
+
+.github/workflows/ci-cd.yml
+
+
+Enterprise-Scale Simulation
+    Scaling agents: In docker-compose.yml, you can scale agents with docker-compose up --scale analyzer=3.
+    Monitoring: Add Prometheus/Grafana containers to monitor agent health.
+    Kubernetes option: Replace docker-compose with Helm charts for orchestrator + agents.
+
+
+Interview Discussion Points
+    Expected Answer: Candidate explains how CI/CD pipeline automates testing, builds Docker images, pushes to registry, and deploys orchestrator + agents.
+    Challenges Faced & Resolved:
+        Challenge: Secrets management for auth tokens.
+            Resolution: Used GitHub Secrets (secrets.AUTH_TOKEN).
+        Challenge: Ensuring orchestrator waits for agents.
+            Resolution: Added depends_on in docker-compose and retry logic in orchestrator.
+        Challenge: Image versioning.
+            Resolution: Tagged images with commit SHA (:sha-${{ github.sha }}) for traceability.

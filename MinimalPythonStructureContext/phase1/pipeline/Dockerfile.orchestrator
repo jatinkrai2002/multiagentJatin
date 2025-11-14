@@ -1,0 +1,6 @@
+FROM python:3.11-slim
+WORKDIR /app
+COPY orchestrator.py shared_protocol.py /app/
+RUN useradd -m runner && chown -R runner:runner /app
+USER runner
+CMD ["python", "orchestrator.py"]
